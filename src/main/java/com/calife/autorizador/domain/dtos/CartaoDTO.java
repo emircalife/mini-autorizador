@@ -20,7 +20,6 @@ public class CartaoDTO implements Serializable{
     }
 
     public CartaoDTO(Cartao oldObj) {
-        super();
         this.id = oldObj.getId();
         this.numeroCartao = oldObj.getNumeroCartao();
         this.senhaCartao = oldObj.getSenhaCartao();

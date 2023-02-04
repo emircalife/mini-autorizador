@@ -1,12 +1,14 @@
 package com.calife.autorizador.resources;
 
 import java.net.URI;
+import java.util.Optional;
 
 import com.calife.autorizador.domain.Cartao;
 import com.calife.autorizador.domain.dtos.CartaoDTO;
 import com.calife.autorizador.services.CartaoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,11 +45,6 @@ public class CartaoResource {
     public ResponseEntity<CartaoDTO> novoCartao(@Valid @RequestBody CartaoDTO cartaoDTO){
         Cartao cartao = service.create(cartaoDTO);
 
-        URI	uri = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(cartao.getId())
-                .toUri();
-        return ResponseEntity.created(uri).build();
+        return ResponseEntity.ok().body(new CartaoDTO(cartao));
     }
 }
