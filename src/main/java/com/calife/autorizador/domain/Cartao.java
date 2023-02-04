@@ -18,7 +18,8 @@ public class Cartao implements Serializable {
     public Cartao() {
         super();
     }
-    public Cartao(String numeroCartao, String senhaCartao, Double valor) {
+    public Cartao(Integer id, String numeroCartao, String senhaCartao, Double valor) {
+        this.id = id;
         this.numeroCartao = numeroCartao;
         this.senhaCartao = senhaCartao;
         this.valor = valor;
@@ -26,9 +27,18 @@ public class Cartao implements Serializable {
 
     public Cartao(CartaoDTO objDTO) {
         super();
+        this.id = objDTO.getId();
         this.numeroCartao = objDTO.getNumeroCartao();
         this.senhaCartao = objDTO.getSenhaCartao();
         this.valor = objDTO.getValor();
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getNumeroCartao() {

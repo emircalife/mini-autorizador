@@ -28,28 +28,26 @@ public class CartaoResource {
     }
 
     @GetMapping(value = "/{numeroCartao}")
-    public ResponseEntity<CartaoDTO> obterDadosCartao(@PathVariable String numerocartao){
-        Cartao obj = service.findByNumeroCartao(numerocartao);
+    public ResponseEntity<CartaoDTO> obterDadosCartao(@PathVariable String numero){
+        Cartao obj = service.findByNumeroCartao(numero);
         return ResponseEntity.ok().body(new CartaoDTO(obj));
-    }
-
-    @GetMapping(value = "/{numero}")
-    public ResponseEntity<CartaoDTO> obterSaldo(@PathVariable String numerocartao){
-        Cartao obj = service.getSaldo(numerocartao);
-        return ResponseEntity.ok().body(new CartaoDTO(obj));
-    }
-
-    @PostMapping
-    public ResponseEntity<CartaoDTO> novoCartao(@Valid @RequestBody CartaoDTO objDTO){
-        Cartao newObj = service.create(objDTO);
-        URI	uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{numeroCartao}").buildAndExpand(newObj.getNumeroCartao()).toUri();
-        return ResponseEntity.created(uri).build();
-
     }
 
     @PutMapping(value = "/{numeroCartao}")
     public ResponseEntity<CartaoDTO> transacao(@PathVariable String numeroCartao, @RequestBody CartaoDTO objDTO){
         Cartao oldObj = service.transacao(numeroCartao, objDTO.getSenhaCartao(), objDTO.getValor());
         return ResponseEntity.ok().body(new CartaoDTO(oldObj));
+    }
+
+    @PostMapping
+    public ResponseEntity<CartaoDTO> novoCartao(@Valid @RequestBody CartaoDTO cartaoDTO){
+        Cartao cartao = service.create(cartaoDTO);
+
+        URI	uri = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(cartao.getId())
+                .toUri();
+        return ResponseEntity.created(uri).build();
     }
 }

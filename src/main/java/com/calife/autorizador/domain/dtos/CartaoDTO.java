@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 
 public class CartaoDTO implements Serializable{
+    protected Integer id;
     @NotNull(message = "Campo Número do Cartão é obrigatório")
     protected String numeroCartao;
 
@@ -20,10 +21,18 @@ public class CartaoDTO implements Serializable{
 
     public CartaoDTO(Cartao oldObj) {
         super();
-
+        this.id = oldObj.getId();
         this.numeroCartao = oldObj.getNumeroCartao();
         this.senhaCartao = oldObj.getSenhaCartao();
         this.valor = oldObj.getValor();
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getNumeroCartao() {

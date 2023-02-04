@@ -9,6 +9,4 @@ import java.util.Optional;
 public interface CartaoRepository extends JpaRepository<Cartao, Integer> {
 
     Optional<Cartao> findByNumeroCartao(String numeroCartao);
-//    @Query("select * from miniautorizador where numeroCartao = :numeroCartao")
-//    Optional<Cartao> findByNumeroCartao(String numeroCartao);
 }

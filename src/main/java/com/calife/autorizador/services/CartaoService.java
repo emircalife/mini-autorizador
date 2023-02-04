@@ -22,12 +22,14 @@ public class CartaoService {
     }
 
     public Cartao create(CartaoDTO objDTO) {
+        objDTO.setId(null);
         objDTO.setNumeroCartao(objDTO.getNumeroCartao());
         objDTO.setSenhaCartao(objDTO.getSenhaCartao());
         objDTO.setValor(500.00);
 
-        Cartao newObj = new Cartao(objDTO);
-        return repository.save(newObj);
+        Cartao cartao = new Cartao(objDTO);
+
+        return repository.save(cartao);
     }
 
     public Cartao transacao(String numeroCartao, String senha, Double valorTransacao) {
@@ -35,13 +37,19 @@ public class CartaoService {
 
 
         objDTO.setNumeroCartao(numeroCartao);
-        Cartao objResultDTO = findByNumeroCartao(numeroCartao);
+        objDTO.setSenhaCartao(senha);
+        objDTO.setValor(valorTransacao);
 
-        if(objResultDTO.getSenhaCartao().equals(senha)) {
-            objResultDTO.setValor(valorTransacao);
+        Cartao objResultDTO = findByNumeroCartao(objDTO.getNumeroCartao());
+
+        if(objResultDTO.getSenhaCartao().equals(objDTO.getSenhaCartao())) {
+            if(objResultDTO.getValor() < objDTO.getValor()) {
+                throw new ObjectNotFoundException("SALDO_INSUFICIENTE");
+            }
 
             validaTransacao(objDTO);
-            objResultDTO.setValor(objDTO.getValor());
+
+            objResultDTO.setValor(objResultDTO.getValor() - objDTO.getValor());
 
             return repository.save(objResultDTO);
         }
@@ -52,12 +60,12 @@ public class CartaoService {
     private void validaTransacao(CartaoDTO objDTO) {
         //O cartão existir
         Optional<Cartao> obj = repository.findByNumeroCartao(objDTO.getNumeroCartao());
-        if(obj.isPresent() && obj.get().getNumeroCartao() != objDTO.getNumeroCartao()) {
+        if(obj.isPresent() && !obj.get().getNumeroCartao().equals(objDTO.getNumeroCartao())) {
             throw new ObjectNotFoundException("CARTAO_INEXISTENTE");
         }
 
         //A senha do cartão for a correta
-        if(obj.isPresent() && obj.get().getSenhaCartao() != objDTO.getSenhaCartao()) {
+        if(obj.isPresent() && !obj.get().getSenhaCartao().equals(objDTO.getSenhaCartao())) {
             throw new ObjectNotFoundException("SENHA_INVALIDA");
         }
 
@@ -65,12 +73,5 @@ public class CartaoService {
         if(obj.isPresent() && obj.get().getValor() < objDTO.getValor()) {
             throw new ObjectNotFoundException("SALDO_INSUFICIENTE");
         }
-    }
-
-    public Cartao getSaldo(String numerocartao) {
-        Cartao cartao = findByNumeroCartao(numerocartao);
-        cartao.setSenhaCartao("");
-
-        return cartao;
     }
 }
