@@ -1,14 +1,13 @@
 package com.calife.autorizador.resources;
 
+import com.calife.autorizador.services.CartaoService;
 import java.net.URI;
-import java.util.Optional;
 
 import com.calife.autorizador.domain.Cartao;
 import com.calife.autorizador.domain.dtos.CartaoDTO;
-import com.calife.autorizador.services.CartaoService;
+import com.calife.autorizador.services.CartaoServiceImpl;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,29 +21,30 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 @RequestMapping(value = "/cartoes")
 public class CartaoResource {
-    @Autowired
+    @Qualifier("${cartao.service.bean}")
     private CartaoService service;
 
-    public CartaoResource(CartaoService service) {
+    public CartaoResource(CartaoServiceImpl service) {
         this.service = service;
     }
 
     @GetMapping(value = "/{numeroCartao}")
-    public ResponseEntity<CartaoDTO> obterDadosCartao(@PathVariable String numero){
-        Cartao obj = service.findByNumeroCartao(numero);
+    public ResponseEntity<CartaoDTO> obterDadosCartao(@PathVariable String numerocartao){
+        Cartao obj = service.findByNumeroCartao(numerocartao);
         return ResponseEntity.ok().body(new CartaoDTO(obj));
+    }
+
+    @PostMapping
+    public ResponseEntity<CartaoDTO> novoCartao(@Valid @RequestBody CartaoDTO objDTO){
+        Cartao newObj = service.create(objDTO);
+        URI	uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{numeroCartao}").buildAndExpand(newObj.getNumeroCartao()).toUri();
+        return ResponseEntity.created(uri).build();
+
     }
 
     @PutMapping(value = "/{numeroCartao}")
     public ResponseEntity<CartaoDTO> transacao(@PathVariable String numeroCartao, @RequestBody CartaoDTO objDTO){
         Cartao oldObj = service.transacao(numeroCartao, objDTO.getSenhaCartao(), objDTO.getValor());
         return ResponseEntity.ok().body(new CartaoDTO(oldObj));
-    }
-
-    @PostMapping
-    public ResponseEntity<CartaoDTO> novoCartao(@Valid @RequestBody CartaoDTO cartaoDTO){
-        Cartao cartao = service.create(cartaoDTO);
-
-        return ResponseEntity.ok().body(new CartaoDTO(cartao));
     }
 }

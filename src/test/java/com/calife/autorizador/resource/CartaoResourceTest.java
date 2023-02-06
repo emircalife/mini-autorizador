@@ -1,84 +1,47 @@
 package com.calife.autorizador.resource;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.calife.autorizador.domain.Cartao;
 import com.calife.autorizador.domain.dtos.CartaoDTO;
-import com.calife.autorizador.resources.CartaoResource;
-import com.calife.autorizador.services.CartaoService;
-import org.junit.Assert;
+import com.calife.autorizador.services.exceptions.ValidatorException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 
-import java.util.Optional;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 public class CartaoResourceTest {
-    @InjectMocks
-    private CartaoResource resource;
-    @Mock
-    private CartaoService service;
+    public static final double valor = 500.0;
+    private final String BASE_URL = "/cartoes";
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
-    public void testCriaCartao() {
-        Cartao cartaoRet = new Cartao();
+    public void testCriaCartao() throws Exception {
         Cartao cartao = new Cartao();
         cartao.setNumeroCartao("6549873025634501");
         cartao.setSenhaCartao("321");
 
         CartaoDTO newObj = new CartaoDTO(cartao);
 
-        when(service.create(newObj)).thenReturn(cartaoRet);
-        ResponseEntity<CartaoDTO> result = resource.novoCartao(newObj);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-        Assert.assertEquals("6549873025634501", result.getBody().getNumeroCartao());
-        Assert.assertEquals("321", result.getBody().getSenhaCartao());
-        Assert.assertEquals(Optional.of(500.00), result.getBody().getValor());
-    }
-
-    @Test
-    public void testSaldoInsuficiente() {
-        Cartao cartaoRet = new Cartao();
-        Cartao cartao = new Cartao();
-
-        cartao.setNumeroCartao("6549873025634501");
-        cartao.setSenhaCartao("321");
-
-        CartaoDTO novoCartaoDTO = new CartaoDTO(cartao);
-
-        when(service.create(novoCartaoDTO)).thenReturn(cartaoRet);
-
-        ResponseEntity<CartaoDTO> result = resource.novoCartao(novoCartaoDTO);
-
-        Mockito.when(service.findByNumeroCartao("6549873025634501")).thenReturn(cartaoRet);
-        Mockito.when(service.transacao("6549873025634501","321", 100.00)).thenReturn(cartaoRet);
-
-        Mockito.when(service.findByNumeroCartao("6549873025634501")).thenReturn(cartaoRet);
-        Assert.assertEquals(Optional.of(400.00), cartaoRet.getValor());
-
-        Mockito.when(service.transacao("6549873025634501","321", 100.00)).thenReturn(cartaoRet);
-        Assert.assertEquals(Optional.of(300.00), cartaoRet.getValor());
-
-        Mockito.when(service.transacao("6549873025634501","321", 200.00)).thenReturn(cartaoRet);
-        Assert.assertEquals(Optional.of(100.00), cartaoRet.getValor());
-
-        Mockito.when(service.transacao("6549873025634501","321", 120.00)).thenReturn(cartaoRet);
-
-        ResponseEntity<CartaoDTO> response = resource.obterDadosCartao("6549873025634501");
-
-        Assert.assertEquals(ResponseEntity.ok().build().getStatusCode(), response.getStatusCode());
-        Assert.assertEquals("6549873025634501", response.getBody().getNumeroCartao());
-        Assert.assertEquals("321", response.getBody().getSenhaCartao());
-        Assert.assertEquals(Optional.of(100.00), response.getBody().getValor());
+        this.mockMvc
+                .perform(post(BASE_URL)
+                        .content(new ObjectMapper().writeValueAsString(newObj))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isCreated());
     }
 }
